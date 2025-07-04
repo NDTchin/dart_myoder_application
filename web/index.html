@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Order</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ee5a24;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #ee5a24;
+            box-shadow: 0 0 0 3px rgba(238, 90, 36, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(238, 90, 36, 0.4);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .search-box .form-group {
+            flex: 1;
+        }
+
+        .orders-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>My Order</h1>
+            <p>Manage your orders with ease</p>
+        </div>
+        
+        <div class="content">
+            <div id="statusMessage"></div>
+            
+            <!-- Add Order Form -->
+            <div class="form-section">
+                <h3 style="margin-bottom: 20px; color: #333;">Add New Order</h3>
+                <form id="orderForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="item">Item Code</label>
+                            <input type="text" id="item" name="item" required placeholder="e.g., A1002">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemName">Item Name</label>
+                            <input type="text" id="itemName" name="itemName" required placeholder="e.g., iPhone 15 Pro">
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input type="number" id="price" name="price" step="0.01" required placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" id="quantity" name="quantity" min="1" required placeholder="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="currency">Currency</label>
+                            <select id="currency" name="currency" required>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="JPY">JPY</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="align-self: end;">
+                            <button type="submit" class="btn">Add to Cart</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-box">
+                    <div class="form-group">
+                        <label for="searchInput">Search Orders by Item Name</label>
+                        <input type="text" id="searchInput" placeholder="Type to search..." style="padding: 12px;">
+                    </div>
+                    <button type="button" class="btn" onclick="searchOrders()">Search</button>
+                    <button type="button" class="btn" onclick="clearSearch()">Clear</button>
+                </div>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="orders-table">
+                <div class="table-header">
+                    <h3>Order List</h3>
+                </div>
+                <div class="table-content">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Item</th>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Currency</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">Loading orders...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allOrders = [];
+
+        // Load orders when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrders();
+            
+            // Setup form submission
+            document.getElementById('orderForm').addEventListener('submit', handleAddOrder);
+            
+            // Setup search on input
+            document.getElementById('searchInput').addEventListener('input', function() {
+                if (this.value.length === 0) {
+                    displayOrders(allOrders);
+                }
+            });
+        });
+
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                if (response.ok) {
+                    allOrders = await response.json();
+                    displayOrders(allOrders);
+                } else {
+                    showMessage('Failed to load orders', 'error');
+                }
+            } catch (error) {
+                showMessage('Error connecting to server: ' + error.message, 'error');
+            }
+        }
+
+        function displayOrders(orders) {
+            const tbody = document.getElementById('ordersTableBody');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-orders">No orders found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = orders.map((order, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${order.Item}</td>
+                    <td>${order.ItemName}</td>
+                    <td>${order.Quantity}</td>
+                    <td>$${order.Price.toFixed(2)}</td>
+                    <td>${order.Currency}</td>
+                    <td>
+                        <button class="btn btn-delete" onclick="deleteOrder(${index})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function handleAddOrder(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const orderData = {
+                Item: formData.get('item'),
+                ItemName: formData.get('itemName'),
+                Price: parseFloat(formData.get('price')),
+                Currency: formData.get('currency'),
+                Quantity: parseInt(formData.get('quantity'))
+            };
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Order added successfully!', 'success');
+                    event.target.reset();
+                    loadOrders(); // Reload orders
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error adding order: ' + error.message, 'error');
+            }
+        }
+
+        async function searchOrders() {
+            const query = document.getElementById('searchInput').value.trim();
+            
+            try {
+                const response = await fetch(`/api/orders/search?q=${encodeURIComponent(query)}`);
+                if (response.ok) {
+                    const searchResults = await response.json();
+                    displayOrders(searchResults);
+                    
+                    if (query) {
+                        showMessage(`Found ${searchResults.length} order(s) matching "${query}"`, 'success');
+                    }
+                } else {
+                    showMessage('Failed to search orders', 'error');
+                }
+            } catch (error) {
+                showMessage('Error searching orders: ' + error.message, 'error');
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            displayOrders(allOrders);
+            clearMessage();
+        }
+
+        async function deleteOrder(index) {
+            if (!confirm('Are you sure you want to delete this order?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/orders/${index}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Order deleted successfully!', 'success');
+                    loadOrders(); // Reload orders
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error deleting order: ' + error.message, 'error');
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('statusMessage');
+            messageDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+            
+            // Auto-hide success messages after 3 seconds
+            if (type === 'success') {
+                setTimeout(clearMessage, 3000);
+            }
+        }
+
+        function clearMessage() {
+            document.getElementById('statusMessage').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
